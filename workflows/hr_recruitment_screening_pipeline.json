@@ -1,0 +1,788 @@
+{
+  "name": "HR Recruitment Candidate Screening Pipeline",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ff0fa14a-92c9-46ba-83a4-b0caf9da64e1",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -4480,
+        96
+      ],
+      "id": "cc610572-e50a-4ab8-815e-04aa1292a733",
+      "name": "JazzHR Candidate Export",
+      "webhookId": "ff0fa14a-92c9-46ba-83a4-b0caf9da64e1",
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Fetch Candidate Profiles').item.json.resumeUrl }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -3360,
+        96
+      ],
+      "id": "b4d9448d-be71-48dd-b096-f7211c67df8a",
+      "name": "Download Resume"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract the Base64 content from the HTTP response\nconst base64Content = $json.content;\n\n// Decode Base64 to binary\nconst binaryData = Buffer.from(base64Content, 'base64');\n\n// Use the prospect id from the previous node's data\nconst fileName = $('Fetch Candidate Profiles').first().json.id;\n\n// Return with proper binary metadata so Drive sees the name\nreturn [\n  {\n    json: {\n      ...$json,\n      processedFileName: fileName\n    },\n    binary: {\n      data: {\n        data: binaryData.toString('base64'),\n        mimeType: \"application/pdf\",\n        fileName: fileName\n      }\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3168,
+        96
+      ],
+      "id": "d7f5987b-c277-4c0c-aa27-11cb2d09b2f4",
+      "name": "Process Resume File"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "9d6e6445-5ec0-460f-b13e-20cdf2d5d51a",
+              "name": "resumeUrl",
+              "value": "={{ $('JazzHR Candidate Export').item.json.body.candidate.profiles[0].attachments[0].url }}",
+              "type": "string"
+            },
+            {
+              "id": "f846ca4d-228e-4d6e-9a14-ce1153ce1644",
+              "name": "candidateId",
+              "value": "={{ $('JazzHR Candidate Export').item.json.body.candidate.person.id.value }}",
+              "type": "string"
+            },
+            {
+              "id": "db82497b-0091-4455-b4d8-8ce4cb441d74",
+              "name": "resumeName",
+              "value": "={{ $('JazzHR Candidate Export').item.json.body.candidate.profiles[0].attachments[0].descriptions[0] }}",
+              "type": "string"
+            },
+            {
+              "id": "567ef0f1-13d0-4c93-9fa1-a59d6bea6f40",
+              "name": "Job Applied For",
+              "value": "={{ $('JazzHR Candidate Export').item.json.body.candidate.profiles[0].associatedPositionOpenings[0].positionTitle }}",
+              "type": "string"
+            },
+            {
+              "id": "69b0a590-43be-4b33-acea-eb2503c65861",
+              "name": "Email",
+              "value": "={{ $('JazzHR Candidate Export').item.json.body.candidate.person.communication.email[0].address }}",
+              "type": "string"
+            },
+            {
+              "id": "3369ba87-b5a0-4a8d-80d5-9ba8aa6f55e3",
+              "name": "Phone",
+              "value": "= {{ $('JazzHR Candidate Export').item.json.body.candidate.person.communication.phone[0].formattedNumber }}",
+              "type": "string"
+            },
+            {
+              "id": "0f80bc5a-eefe-41e2-b032-ed789d539cc8",
+              "name": "id",
+              "value": "={{ $('JazzHR Candidate Export').item.json.body.candidate.alternateIds[0].value }}",
+              "type": "string"
+            },
+            {
+              "id": "b820fd90-1cbe-4fee-82fd-ebde32810611",
+              "name": "Job id",
+              "value": "={{ $('JazzHR Candidate Export').item.json.body.candidate.profiles[0].associatedPositionOpenings[0].alternateIds[0].value }}",
+              "type": "string"
+            },
+            {
+              "id": "7102804d-42fb-4b18-8e51-cda2d0b52b9e",
+              "name": "Apply_date",
+              "value": "={{ $('JazzHR Candidate Export').item.json.body.candidate.person.applyDate }}",
+              "type": "string"
+            },
+            {
+              "id": "7cb43a7b-5afe-4447-ad7c-9640a1230a1f",
+              "name": "Candidate Stages",
+              "value": "={{ $('JazzHR Candidate Export').item.json.body.candidate.profiles[0].associatedPositionOpenings[0].candidateStatus.name }}",
+              "type": "string"
+            },
+            {
+              "id": "fd6f81fd-e635-479d-8339-3f63f2ceadf6",
+              "name": "Candidate Name",
+              "value": "={{ $('JazzHR Candidate Export').item.json.body.candidate.person.name.formattedName }}",
+              "type": "string"
+            },
+            {
+              "id": "93f8ba94-0184-49ff-a0b8-5e3e26bf42cf",
+              "name": "Linkedin Profile",
+              "value": "={{ $('JazzHR Candidate Export').item.json.body.candidate.person.communication.web[0].url}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -3808,
+        96
+      ],
+      "id": "c1c6be85-c9ec-4495-a900-a3332d0a5774",
+      "name": "Fetch Candidate Profiles"
+    },
+    {
+      "parameters": {
+        "name": "={{ $binary.data.fileName }}",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "1-wK2ebb94RsMwKHuyH8G26fcbTxJipFX",
+          "mode": "list",
+          "cachedResultName": "Resume",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1-wK2ebb94RsMwKHuyH8G26fcbTxJipFX"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -2912,
+        -16
+      ],
+      "id": "6b21afae-ef77-4354-afa5-cbf35d604050",
+      "name": "Save Resumes to Cloud",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "Rajaycp7lPba5YEX",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -2688,
+        96
+      ],
+      "id": "e0cb42aa-87b7-40f3-ba98-cdc4402c56d3",
+      "name": "Integrate Candidate Info"
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        -2912,
+        192
+      ],
+      "id": "9da9d2e4-f29e-4e2e-9162-79fc38bcab36",
+      "name": "Extract Resume Text"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4.1",
+          "mode": "list",
+          "cachedResultName": "GPT-4.1"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You are an HR assistant tasked with evaluating a candidate’s resume against a provided job description. Your role is to assess the candidate’s relevance based on the following criteria:\n{{ $('Get row(s) in sheet').item.json['Criteria 1'] }}\n{{ $('Get row(s) in sheet').item.json['Criteria 2'] }}\n{{ $('Get row(s) in sheet').item.json['Criteria 3'] }}\n{{ $('Get row(s) in sheet').item.json['Criteria 4'] }}\n{{ $('Get row(s) in sheet').item.json['Criteria 5'] }}\n{{ $('Get row(s) in sheet').item.json['Criteria 6'] }}\n{{ $('Get row(s) in sheet').item.json['Criteria 7'] }}\n{{ $('Get row(s) in sheet').item.json['Criteria 8'] }}\n{{ $('Get row(s) in sheet').item.json['Criteria 9'] }}\n{{ $('Get row(s) in sheet').item.json['Criteria 10'] }}\n- **Qualification Threshold: If the overall score is  {{ $('Get row(s) in sheet').item.json['Minimum LLM score'] }} or higher, classify the candidate as \"Qualified.\" If below {{ $('Get row(s) in sheet').item.json['Minimum LLM score'] }}, classify them as \"Not Qualified.\"\nThe overall score must be a whole number (no decimals) between 1 and 10\"\n- {\n \"result\": \"Not Qualified\",\n  \"score\": 6,\n  \"Explanation\": \"Candidate summary and assessment.\"\n}\n- {\n  \"result\": \"Qualified\",\n  \"score\": 9,\n  \"Explanation\": \"Candidate summary and assessment.\"\n}\n- **Input Handling**:\n  - The job description is provided as: {{ $('Job Description').last().json.description }}\n  - The candidate’s resume is provided as: {{ $('Extract Resume Text').last().json.text }}\n  - If either the job description or resume is missing or incomplete, respond with an error message in JSON format: \n    {\n      \"error\": \"Missing or incomplete job description or resume data. Please provide both to proceed with evaluation.\"\n    }\n- **Assumptions**:\n  - Assume all provided data is accurate and up-to-date.\n  - Do not infer or fabricate details not explicitly stated in the resume or job description.\n  - If specific skills, experience, or qualifications are not mentioned but can be reasonably inferred from context (e.g., a role implies a skill), note this in the explanation but avoid speculative scoring.\n- **Best Practices**:\n  - Ensure explanations are clear, concise, and directly tied to the job description and resume.\n  - Highlight both strengths and gaps (if any) in the candidate’s profile.\n  - Use objective language and avoid bias in evaluations.\n  - If the job description specifies preferred qualifications or skills, weigh them appropriately but prioritize mandatory requirements.\n  - If the resume includes quantifiable achievements, consider these as evidence of capability where relevant.\n  - For technical roles, prioritize technical skills and tools mentioned in the job description.\n  - For senior roles, emphasize leadership experience, strategic contributions, or mentorship where applicable.",
+              "role": "system"
+            },
+            {
+              "content": "=Job Description:  {{ $('Job Description').last().json.description }}\n\nResume: {{ $('Extract Resume Text').last().json.text }}"
+            }
+          ]
+        },
+        "simplify": "={{ false }}",
+        "jsonOutput": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        -2240,
+        96
+      ],
+      "id": "3311ea08-3732-46c5-a62d-6a6d826c3b38",
+      "name": "Evaluate Candidate Using AI",
+      "credentials": {
+        "openAiApi": {
+          "id": "a2SBaLITUvClTiYa",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "5b4102b2-62aa-4f68-a97c-9f480ea73db1",
+              "leftValue": "={{ $json.Result }}",
+              "rightValue": "Qualified",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1664,
+        96
+      ],
+      "id": "facdc8f7-bd9d-4646-b348-992dd8745c37",
+      "name": "Check Evaluation Result"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Fetch Candidate Profiles').item.json.Email }}",
+        "subject": "=Congratulations {{ $('Fetch Candidate Profiles').item.json['Candidate Name'] }}! 🎉\n\nYou are {{ $json.Result }} for the position. We’re excited to move forward with you!",
+        "message": "=<!doctype html>\n<html>\n<head>\n  <meta charset=\"utf-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n  <title>Interview Booking</title>\n</head>\n<body style=\"margin:0;padding:0;background-color:#f4f6f8;font-family:Arial,Helvetica,sans-serif;\">\n  <table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"background-color:#f4f6f8;padding:24px 0;\">\n    <tr>\n      <td align=\"center\">\n        <table role=\"presentation\" width=\"600\" cellpadding=\"0\" cellspacing=\"0\" style=\"background:#ffffff;border-radius:8px;overflow:hidden;box-shadow:0 6px 18px rgba(0,0,0,0.06);\">\n          <tr>\n            <td style=\"padding:24px 28px;background:linear-gradient(90deg,#2a9df4,#1e73be);color:#ffffff;\">\n              <h1 style=\"margin:0;font-size:20px;font-weight:700;\">Congratulations!</h1>\n            </td>\n          </tr>\n          <tr>\n            <td style=\"padding:28px;\">\n              <p style=\"margin:0 0 16px 0;font-size:16px;color:#333333;\">\n                Hi <strong>{{ $('Fetch Candidate Profiles').item.json['Candidate Name'] }}</strong>,\n              </p>\n              <p style=\"margin:0 0 16px 0;font-size:16px;color:#333333;line-height:1.5;\">\n                We’re excited to inform you that you’ve <strong>passed</strong> the initial selection process!\n              </p>\n              <div style=\"margin:18px 0;padding:16px;border-radius:6px;background:#f0fbff;border:1px solid #e1f4ff;\">\n                <p style=\"margin:0;font-size:15px;color:#0b6fb6;\">\n                  <strong>Status:</strong> {{ $json.Result }}\n                </p>\n              </div>\n              <table role=\"presentation\" cellpadding=\"0\" cellspacing=\"0\" style=\"margin:16px 0;\">\n                <tr>\n                  <td align=\"center\">\n                    <a href=\"https://calendly.com/your-team/interview\" style=\"display:inline-block;padding:14px 24px;border-radius:6px;background:#1e73be;color:#ffffff;text-decoration:none;font-weight:600;font-size:15px;\">\n                      📅 Book Your Interview\n                    </a>\n                  </td>\n                </tr>\n              </table>\n              <p style=\"margin:20px 0 0 0;font-size:14px;color:#6b6b6b;\">\n                Once booked, you’ll receive a confirmation email with the meeting link and details.\n              </p>\n            </td>\n          </tr>\n        </table>\n      </td>\n    </tr>\n  </table>\n</body>\n</html>",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -1232,
+        -16
+      ],
+      "id": "d0e23240-d808-45ad-948a-287dfd8683b3",
+      "name": "Send Qualified Notification",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "u0mBbucSjWE9W5Mg",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Fetch Candidate Profiles').item.json.Email }}",
+        "subject": "=We Appreciate Your Interest – Application Update",
+        "message": "=<!doctype html>\n<html>\n<head>\n  <meta charset=\"utf-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n  <title>Application Update</title>\n</head>\n<body style=\"margin:0;padding:0;background-color:#f4f6f8;font-family:Arial,Helvetica,sans-serif;\">\n  <table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"background-color:#f4f6f8;padding:24px 0;\">\n    <tr>\n      <td align=\"center\">\n        <table role=\"presentation\" width=\"600\" cellpadding=\"0\" cellspacing=\"0\" style=\"background:#ffffff;border-radius:8px;overflow:hidden;box-shadow:0 6px 18px rgba(0,0,0,0.06);\">\n          <tr>\n            <td style=\"padding:24px 28px;background:linear-gradient(90deg,#ff6b6b,#e63946);color:#ffffff;\">\n              <h1 style=\"margin:0;font-size:20px;font-weight:700;\">Application Update</h1>\n            </td>\n          </tr>\n          <tr>\n            <td style=\"padding:28px;\">\n              <p style=\"margin:0 0 16px 0;font-size:16px;color:#333333;\">\n                Hi <strong>{{ $('Fetch Candidate Profiles').item.json['Candidate Name'] }}</strong>,\n              </p>\n              <p style=\"margin:0 0 16px 0;font-size:16px;color:#333333;line-height:1.5;\">\n                Thank you for taking the time to apply. After careful consideration, we regret to inform you that you were not selected for this position.\n              </p>\n              <p style=\"margin:20px 0 0 0;font-size:14px;color:#6b6b6b;\">\n                Wishing you the very best in your career journey.\n              </p>\n            </td>\n          </tr>\n        </table>\n      </td>\n    </tr>\n  </table>\n</body>\n</html>",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -1232,
+        192
+      ],
+      "id": "1069a6a5-b9bb-4117-9293-1e0e3975839a",
+      "name": "Send Rejection Notification",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "u0mBbucSjWE9W5Mg",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1e6gjvUTThPT_Vnoi8n6nr9rlrBcKXdt4ATMVrr1YSEI",
+          "mode": "list",
+          "cachedResultName": "HR - JAZZ HR - N8N"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 2030147424,
+          "mode": "list",
+          "cachedResultName": "Data Sheet"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $('Fetch Candidate Profiles').last().json.id }}",
+            "Invited to Interview (Email)": "Yes"
+          },
+          "matchingColumns": [
+            "id"
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -1008,
+        -16
+      ],
+      "id": "22c488fc-e060-448e-aee6-bf618406233a",
+      "name": "Update Pass Record",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "MpbKjBPksGj0aoGy",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1e6gjvUTThPT_Vnoi8n6nr9rlrBcKXdt4ATMVrr1YSEI",
+          "mode": "list",
+          "cachedResultName": "HR - JAZZ HR - N8N"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 2030147424,
+          "mode": "list",
+          "cachedResultName": "Data Sheet"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $('Fetch Candidate Profiles').last().json.id }}",
+            "Invited to Interview (Email)": "No"
+          },
+          "matchingColumns": [
+            "id"
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -1008,
+        192
+      ],
+      "id": "d0a0eec5-f0d5-46e6-b8b2-4ccfe6957726",
+      "name": "Update Fail Record",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "MpbKjBPksGj0aoGy",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://api.resumatorapi.com/v1/jobs/{{ $('JazzHR Candidate Export').item.json.body.candidate.profiles[0].associatedPositionOpenings[0].alternateIds[0].value }}",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "={{ $env.RESUMATOR_API_KEY || 'REPLACE_WITH_API_KEY' }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -3584,
+        96
+      ],
+      "id": "a7b4deb7-292a-4749-aca8-06c2f9377c77",
+      "name": "Job Description",
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1e6gjvUTThPT_Vnoi8n6nr9rlrBcKXdt4ATMVrr1YSEI",
+          "mode": "list",
+          "cachedResultName": "HR - JAZZ HR - N8N"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 2030147424,
+          "mode": "list",
+          "cachedResultName": "Data Sheet"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $('Fetch Candidate Profiles').last().json.id }}",
+            "Explanation": "={{ $json.choices[0].message.content.Explanation }}",
+            "Result": "={{ $json.choices[0].message.content.result }}",
+            "Resume Drive URL": "={{ $('Integrate Candidate Info').item.json.webViewLink }}",
+            "LLM Score": "={{ $json.choices[0].message.content.score }}"
+          },
+          "matchingColumns": [
+            "id"
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -1888,
+        96
+      ],
+      "id": "b46a4f87-82fd-49f5-b362-8462dcba734a",
+      "name": "Add GPT Results",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "MpbKjBPksGj0aoGy",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1B9BgkPYW88r9fug9ut0aNpJebAM1LoMkZXippCLN834",
+          "mode": "list",
+          "cachedResultName": "Hiring Criteria Sheet"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -4032,
+        96
+      ],
+      "id": "aff4f263-9414-4d37-ba13-0178364d9cde",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "MpbKjBPksGj0aoGy",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1ziCoZTpf109pGjVEjD3tGajCqhMn7orb6ZnOrSjbTIo",
+          "mode": "list",
+          "cachedResultName": "Raw Ingest Log"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": []
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -4272,
+        96
+      ],
+      "id": "985c1036-b09d-407c-a953-d2b128fb573d",
+      "name": "Append or update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "MpbKjBPksGj0aoGy",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1e6gjvUTThPT_Vnoi8n6nr9rlrBcKXdt4ATMVrr1YSEI",
+          "mode": "list",
+          "cachedResultName": "HR - JAZZ HR - N8N"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 2030147424,
+          "mode": "list",
+          "cachedResultName": "Data Sheet"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $('Fetch Candidate Profiles').item.json.id }}",
+            "Candidate Name": "={{ $('Fetch Candidate Profiles').item.json['Candidate Name'] }}",
+            "Email": "={{ $('Fetch Candidate Profiles').item.json.Email }}",
+            "Phone": "={{ $('Fetch Candidate Profiles').item.json.Phone }}",
+            "Job Applied For": "={{ $('Fetch Candidate Profiles').item.json['Job Applied For'] }}",
+            "Job id": "={{ $('Fetch Candidate Profiles').item.json['Job id'] }}",
+            "Apply_date": "={{ $('Fetch Candidate Profiles').item.json.Apply_date }}",
+            "Linkedin URL": "={{ $('Fetch Candidate Profiles').item.json['Linkedin Profile'] }}",
+            "Resume Drive URL": "={{ $('Save Resumes to Cloud').item.json.webViewLink || \"\"}}"
+          },
+          "matchingColumns": [
+            "id"
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -2464,
+        96
+      ],
+      "id": "77917a4f-63e2-400b-ab21-9e7a35d54a2f",
+      "name": "Update Candidate Records",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "MpbKjBPksGj0aoGy",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "JazzHR Candidate Export": {
+      "main": [
+        [
+          {
+            "node": "Append or update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download Resume": {
+      "main": [
+        [
+          {
+            "node": "Process Resume File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Resume File": {
+      "main": [
+        [
+          {
+            "node": "Save Resumes to Cloud",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Extract Resume Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Candidate Profiles": {
+      "main": [
+        [
+          {
+            "node": "Job Description",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Resumes to Cloud": {
+      "main": [
+        [
+          {
+            "node": "Integrate Candidate Info",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Integrate Candidate Info": {
+      "main": [
+        [
+          {
+            "node": "Update Candidate Records",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Resume Text": {
+      "main": [
+        [
+          {
+            "node": "Integrate Candidate Info",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Evaluate Candidate Using AI": {
+      "main": [
+        [
+          {
+            "node": "Add GPT Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Evaluation Result": {
+      "main": [
+        [
+          {
+            "node": "Send Qualified Notification",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Rejection Notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Qualified Notification": {
+      "main": [
+        [
+          {
+            "node": "Update Pass Record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Rejection Notification": {
+      "main": [
+        [
+          {
+            "node": "Update Fail Record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Job Description": {
+      "main": [
+        [
+          {
+            "node": "Download Resume",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add GPT Results": {
+      "main": [
+        [
+          {
+            "node": "Check Evaluation Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Fetch Candidate Profiles",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append or update row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Candidate Records": {
+      "main": [
+        [
+          {
+            "node": "Evaluate Candidate Using AI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

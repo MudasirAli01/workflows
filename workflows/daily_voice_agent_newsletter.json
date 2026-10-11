@@ -1,0 +1,245 @@
+{
+  "name": "Daily AI Voice Agent Research & HTML Newsletter",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "days",
+              "triggerAtHour": 7,
+              "triggerAtMinute": 0
+            }
+          ]
+        }
+      },
+      "id": "e1f10c62-38d7-463e-b816-c95697666249",
+      "name": "Every Day at 7:00 AM",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        240,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Conduct an in-depth morning research brief on the latest AI developments, with a laser focus on AI Automation for Voice Agents (e.g., Vapi, Retell AI, ElevenLabs Conversational AI, OpenAI Realtime API, LiveKit, Cartesia, Bland AI, telephony integration, and AI agency automation workflows). Date today is {{ $now.toFormat('DDDD') }}.\n\nIdentify:\n1. Latest model, framework, and API releases or major updates in voice AI.\n2. Technical breakthroughs (latency, interruption handling, emotion/turn-taking, speech-to-speech).\n3. Practical business automation use cases (e.g., customer support, appointment scheduling, outbound lead qualification).\n4. Lucrative monetization angles and client service opportunities for an AI Automation Agency.\n\nBe specific with tool names, features, metrics, and actionable agency insights.",
+        "options": {
+          "systemMessage": "You are the Chief AI Automation & Voice Agent Research Analyst for a top-tier AI Automation Agency. Your mission is to deliver comprehensive, highly technical, yet business-actionable intelligence briefs on the voice AI ecosystem. Focus strictly on voice agents, speech-to-speech technology, telephony integrations, automation stacks (n8n, Make, custom WebRTC/SIP), and agency monetization opportunities."
+        }
+      },
+      "id": "a90e3869-7c42-4f30-84c1-4b1ec51034f5",
+      "name": "AI Voice Agent Researcher",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        540,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-5",
+        "options": {
+          "temperature": 0.7
+        }
+      },
+      "id": "5b4c1071-3fa4-4ee9-b4f7-7b2de8c3a502",
+      "name": "OpenRouter GPT-5 (Research)",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        440,
+        520
+      ],
+      "credentials": {
+        "openRouterApi": {
+          "id": "",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "Search the web for the latest voice AI, Retell AI, Vapi, ElevenLabs, OpenAI Realtime API, and AI automation news and updates.",
+        "url": "https://api.duckduckgo.com/?q={query}&format=json",
+        "placeholderDefinitions": {
+          "values": [
+            {
+              "name": "query",
+              "description": "Search term to find recent developments in voice agents and AI automation"
+            }
+          ]
+        }
+      },
+      "id": "c6fa2021-9964-42b7-873b-e1c26bdf3b5e",
+      "name": "Web Search & News Tool",
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "typeVersion": 1.1,
+      "position": [
+        640,
+        520
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('AI Voice Agent Researcher').item.json.output }}",
+        "options": {
+          "systemMessage": "You are an elite Tech Newsletter Editor & Master HTML Email Designer for an AI Automation Agency. Transform the incoming research brief into an ultra-modern, high-impact, mobile-responsive HTML email newsletter designed to be read by agency leadership.\n\nYour output must be a clean JSON object with this exact structure:\n{\n  \"subject\": \"🎙️ [Punchy headline with emojis & date]\",\n  \"htmlBody\": \"<!DOCTYPE html><html>...clean modern email styling...</html>\"\n}\n\nEmail Styling Guidelines:\n- Maximum container width 600px, centered.\n- Clean modern typography (Helvetica, Arial, sans-serif or Apple System fonts).\n- Sleek header banner: 'THE DAILY VOICE AGENT RADAR' with today's date.\n- Color palette: Deep dark slate header (#0f172a), crisp white cards (#ffffff), vibrant indigo/violet accents (#6366f1, #8b5cf6), and slate borders (#e2e8f0).\n- Badges/pills for tags (e.g. 'BREAKTHROUGH', 'NEW RELEASE', 'AGENCY PLAYBOOK').\n- Key sections:\n  1. ⚡ Executive Summary (3-4 bullet takeaways)\n  2. 🔬 Voice AI & Tech Radar (Deep dive into platforms, models, latency, tools)\n  3. 💼 Agency Playbook (Exact client pitch angles, services to package, ROI arguments)\n  4. 🛠️ Tool & Resource Stack (Vapi, Retell, ElevenLabs, etc.)\n- Callout boxes with subtle left border accent.\n- Clean footer with agency branding.\n- Return ONLY the JSON object. Do not wrap in markdown backticks."
+        }
+      },
+      "id": "81f1816e-c6e8-4660-84c4-f2882200dc89",
+      "name": "AI Newsletter & HTML Stylist",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        940,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "model": "anthropic/claude-sonnet-4.5",
+        "options": {
+          "temperature": 0.5
+        }
+      },
+      "id": "d04ec950-84fa-4ce6-a193-41bbd06734c5",
+      "name": "OpenRouter Sonnet 4.5 (Newsletter)",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        940,
+        520
+      ],
+      "credentials": {
+        "openRouterApi": {
+          "id": "",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract subject and htmlBody from the newsletter agent's output\nconst rawOutput = $input.first().json.output || '';\n\nlet subject = '🎙️ Daily Voice Agent & AI Automation Intelligence Brief';\nlet htmlBody = '';\n\ntry {\n  // Attempt to parse JSON if wrapped or raw\n  const cleaned = rawOutput.replace(/```json/gi, '').replace(/```/g, '').trim();\n  const parsed = JSON.parse(cleaned);\n  if (parsed.subject) subject = parsed.subject;\n  if (parsed.htmlBody) htmlBody = parsed.htmlBody;\n  else if (parsed.html) htmlBody = parsed.html;\n} catch (e) {\n  // If not strict JSON, extract HTML content or use raw\n  const htmlMatch = rawOutput.match(/<html[\\s\\S]*?<\\/html>/i) || rawOutput.match(/<table[\\s\\S]*?<\\/table>/i) || rawOutput.match(/<div[\\s\\S]*?<\\/div>/i);\n  if (htmlMatch) {\n    htmlBody = htmlMatch[0];\n  } else {\n    htmlBody = rawOutput.replace(/```html/gi, '').replace(/```/g, '').trim();\n  }\n}\n\nreturn [{\n  json: {\n    subject: subject,\n    htmlBody: htmlBody,\n    recipient: 'mudasiralibaloch56@gmail.com'\n  }\n}];"
+      },
+      "id": "7662c1d3-352b-42c2-87ad-f6551b9e07f2",
+      "name": "Prepare Email Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1260,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.recipient }}",
+        "subject": "={{ $json.subject }}",
+        "message": "={{ $json.htmlBody }}",
+        "options": {
+          "html": true
+        }
+      },
+      "id": "e84e1b9b-c40d-45df-bbad-90226b9a896b",
+      "name": "Send Gmail Newsletter",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1520,
+        300
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "u0mBbucSjWE9W5Mg",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Every Day at 7:00 AM": {
+      "main": [
+        [
+          {
+            "node": "AI Voice Agent Researcher",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter GPT-5 (Research)": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Voice Agent Researcher",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Web Search & News Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Voice Agent Researcher",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Voice Agent Researcher": {
+      "main": [
+        [
+          {
+            "node": "AI Newsletter & HTML Stylist",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Sonnet 4.5 (Newsletter)": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Newsletter & HTML Stylist",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Newsletter & HTML Stylist": {
+      "main": [
+        [
+          {
+            "node": "Prepare Email Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Email Data": {
+      "main": [
+        [
+          {
+            "node": "Send Gmail Newsletter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
